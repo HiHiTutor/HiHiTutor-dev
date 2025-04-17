@@ -38,5 +38,5 @@
 此專案使用 Vercel 進行自動部署。當推送到 main 分支時，Vercel 會自動觸發部署流程。
 
 ## API 整合
-
+# Update to trigger Vercel
 前端應用程式通過 API 與後端服務進行通信，API 基礎 URL 通過環境變數 `NEXT_PUBLIC_API_BASE` 配置。 
