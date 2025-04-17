@@ -1,188 +1,194 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+
+import React, { useState, useEffect } from 'react';
+import { 
+  AppBar, 
+  Toolbar, 
+  Typography, 
+  Drawer, 
+  List, 
+  ListItem, 
+  ListItemIcon, 
+  ListItemText,
+  Grid,
+  Card,
+  CardContent,
+  Box,
+  IconButton,
+  useTheme,
+  styled
+} from '@mui/material';
+import {
+  Dashboard as DashboardIcon,
+  People as PeopleIcon,
+  Business as BusinessIcon,
+  Assignment as AssignmentIcon,
+  BarChart as BarChartIcon,
+  Menu as MenuIcon
+} from '@mui/icons-material';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import axios from 'axios';
+
+const drawerWidth = 240;
+
+const Main = styled('main')(({ theme }) => ({
+  flexGrow: 1,
+  padding: theme.spacing(3),
+  marginLeft: drawerWidth,
+  marginTop: 64,
+}));
+
+const TopBar = styled(AppBar)(({ theme }) => ({
+  width: `calc(100% - ${drawerWidth}px)`,
+  marginLeft: drawerWidth,
+}));
+
+const StyledDrawer = styled(Drawer)({
+  width: drawerWidth,
+  flexShrink: 0,
+  '& .MuiDrawer-paper': {
+    width: drawerWidth,
+    boxSizing: 'border-box',
+  },
+});
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    totalStudents: 0,
-    totalTutors: 0,
-    pendingCases: 0,
-    latestCases: 0,
-    totalAds: 0,
-    monthlyStats: []
-  });
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
-  const router = useRouter();
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const theme = useTheme();
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        setIsLoading(true);
-        const token = localStorage.getItem('adminToken');
-        
-        if (!token) {
-          router.push('/admin/login');
-          return;
-        }
-
-        const response = await fetch('https://hihitutor-dev-backend.onrender.com/api/stats', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (!response.ok) {
-          if (response.status === 401) {
-            localStorage.removeItem('adminToken');
-            localStorage.removeItem('adminUser');
-            router.push('/admin/login');
-            return;
-          }
-          throw new Error('無法獲取統計數據');
-        }
-
-        const data = await response.json();
-        
-        // 處理月度數據
-        const monthlyData = data.monthlyStats || [];
-        
-        setStats({
-          totalUsers: data.totalUsers || 0,
-          totalStudents: data.totalStudents || 0,
-          totalTutors: data.totalTutors || 0,
-          pendingCases: data.pendingCases || 0,
-          latestCases: data.latestCases || 0,
-          totalAds: data.totalAds || 0,
-          monthlyStats: monthlyData
-        });
+        const response = await axios.get('/api/stats');
+        setStats(response.data);
+        setLoading(false);
       } catch (err) {
-        console.error('Error fetching stats:', err);
-        setError('獲取數據時發生錯誤，請稍後再試');
-      } finally {
-        setIsLoading(false);
+        setError('Failed to fetch statistics');
+        setLoading(false);
       }
     };
 
     fetchStats();
-  }, [router]);
+  }, []);
 
-  const handleViewMore = (path) => {
-    router.push(path);
-  };
+  const menuItems = [
+    { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin/dashboard' },
+    { text: 'Users', icon: <PeopleIcon />, path: '/admin/users' },
+    { text: 'Cases', icon: <AssignmentIcon />, path: '/admin/cases' },
+    { text: 'Ads', icon: <BusinessIcon />, path: '/admin/ads' },
+    { text: 'Statistics', icon: <BarChartIcon />, path: '/admin/stats' },
+  ];
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-6 bg-red-50 rounded-md">
-        <h3 className="text-red-800">{error}</h3>
-      </div>
-    );
-  }
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">後台總覽 Dashboard</h1>
-      
-      {/* 統計卡片 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-medium text-gray-700">總用戶數</h3>
-          <p className="text-3xl font-bold text-indigo-600 mt-2">{stats.totalUsers}</p>
-          <button 
-            onClick={() => handleViewMore('/admin/users')}
-            className="mt-4 text-indigo-600 hover:text-indigo-800"
+    <Box sx={{ display: 'flex' }}>
+      <StyledDrawer variant="permanent">
+        <Toolbar />
+        <Box sx={{ overflow: 'auto' }}>
+          <List>
+            {menuItems.map((item) => (
+              <ListItem button key={item.text} component="a" href={item.path}>
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+      </StyledDrawer>
+
+      <TopBar position="fixed">
+        <Toolbar>
+          <IconButton
+            color="inherit"
+            edge="start"
+            sx={{ mr: 2, display: { sm: 'none' } }}
           >
-            查看詳情 →
-          </button>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-medium text-gray-700">學生人數</h3>
-          <p className="text-3xl font-bold text-green-600 mt-2">{stats.totalStudents}</p>
-          <button 
-            onClick={() => handleViewMore('/admin/users?role=student')}
-            className="mt-4 text-green-600 hover:text-green-800"
-          >
-            查看詳情 →
-          </button>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-medium text-gray-700">導師人數</h3>
-          <p className="text-3xl font-bold text-blue-600 mt-2">{stats.totalTutors}</p>
-          <button 
-            onClick={() => handleViewMore('/admin/users?role=tutor')}
-            className="mt-4 text-blue-600 hover:text-blue-800"
-          >
-            查看詳情 →
-          </button>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-medium text-gray-700">待審核個案</h3>
-          <p className="text-3xl font-bold text-yellow-600 mt-2">{stats.pendingCases}</p>
-          <button 
-            onClick={() => handleViewMore('/admin/cases?status=pending')}
-            className="mt-4 text-yellow-600 hover:text-yellow-800"
-          >
-            查看詳情 →
-          </button>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-medium text-gray-700">最新個案</h3>
-          <p className="text-3xl font-bold text-purple-600 mt-2">{stats.latestCases}</p>
-          <button 
-            onClick={() => handleViewMore('/admin/cases')}
-            className="mt-4 text-purple-600 hover:text-purple-800"
-          >
-            查看詳情 →
-          </button>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-medium text-gray-700">廣告總數</h3>
-          <p className="text-3xl font-bold text-red-600 mt-2">{stats.totalAds}</p>
-          <button 
-            onClick={() => handleViewMore('/admin/ads')}
-            className="mt-4 text-red-600 hover:text-red-800"
-          >
-            查看詳情 →
-          </button>
-        </div>
-      </div>
-      
-      {/* 圖表 */}
-      <div className="bg-white rounded-lg shadow p-6 mb-8">
-        <h2 className="text-xl font-bold mb-4">月度統計</h2>
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={stats.monthlyStats}
-              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="users" name="用戶" fill="#4F46E5" />
-              <Bar dataKey="cases" name="個案" fill="#10B981" />
-              <Bar dataKey="ads" name="廣告" fill="#EF4444" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-    </div>
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" noWrap component="div">
+            Admin Dashboard
+          </Typography>
+        </Toolbar>
+      </TopBar>
+
+      <Main>
+        <Grid container spacing={3}>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card>
+              <CardContent>
+                <Typography color="textSecondary" gutterBottom>
+                  Total Users
+                </Typography>
+                <Typography variant="h4">
+                  {stats?.totalUsers || 0}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card>
+              <CardContent>
+                <Typography color="textSecondary" gutterBottom>
+                  Active Cases
+                </Typography>
+                <Typography variant="h4">
+                  {stats?.activeCases || 0}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card>
+              <CardContent>
+                <Typography color="textSecondary" gutterBottom>
+                  Pending Applications
+                </Typography>
+                <Typography variant="h4">
+                  {stats?.pendingApplications || 0}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card>
+              <CardContent>
+                <Typography color="textSecondary" gutterBottom>
+                  Active Ads
+                </Typography>
+                <Typography variant="h4">
+                  {stats?.activeAds || 0}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Monthly Statistics
+                </Typography>
+                <Box sx={{ height: 300 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={stats?.monthlyStats || []}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="users" fill={theme.palette.primary.main} />
+                      <Bar dataKey="cases" fill={theme.palette.secondary.main} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      </Main>
+    </Box>
   );
 }
