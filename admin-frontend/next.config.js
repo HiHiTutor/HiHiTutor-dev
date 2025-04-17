@@ -9,7 +9,7 @@ const nextConfig = {
   swcMinify: true,
   // Configure image domains if needed
   images: {
-    domains: [],
+    domains: ['localhost'],
   },
 }
 
