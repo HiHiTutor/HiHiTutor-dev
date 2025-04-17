@@ -13,14 +13,18 @@ const applicationSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'accepted', 'rejected'],
+    enum: ['pending', 'approved', 'rejected'],
     default: 'pending'
+  },
+  message: {
+    type: String,
+    trim: true
   }
 }, {
   timestamps: true
 });
 
-// 確保同一個導師不能重複申請同一個個案
+// Prevent duplicate applications
 applicationSchema.index({ case: 1, tutor: 1 }, { unique: true });
 
 module.exports = mongoose.model('Application', applicationSchema); 

@@ -2,74 +2,93 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const SearchBar = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchType, setSearchType] = useState('all'); // 'all', 'tutors', 'cases'
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useState({
+    location: '',
+    subject: '',
+    role: '',
+    genderPreference: ''
+  });
 
-  const handleSearch = (e) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setSearchParams(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (searchTerm.trim()) {
-      // 根據搜索類型導航到不同的頁面
-      if (searchType === 'all') {
-        navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
-      } else if (searchType === 'tutors') {
-        navigate(`/tutors?q=${encodeURIComponent(searchTerm)}`);
-      } else if (searchType === 'cases') {
-        navigate(`/cases?q=${encodeURIComponent(searchTerm)}`);
-      }
-    }
+    const queryString = new URLSearchParams(searchParams).toString();
+    navigate(`/search?${queryString}`);
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto">
-      <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2">
-        <div className="relative flex-grow">
+    <form onSubmit={handleSubmit} className="w-full max-w-4xl mx-auto p-4 bg-white rounded-lg shadow">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">地區</label>
           <input
             type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="搜尋導師、課程或個案..."
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            name="location"
+            value={searchParams.location}
+            onChange={handleChange}
+            placeholder="輸入地區"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           />
-          <button
-            type="submit"
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-indigo-600"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </button>
         </div>
-        <div className="flex gap-2">
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">科目</label>
+          <input
+            type="text"
+            name="subject"
+            value={searchParams.subject}
+            onChange={handleChange}
+            placeholder="輸入科目"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">身份</label>
           <select
-            value={searchType}
-            onChange={(e) => setSearchType(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            name="role"
+            value={searchParams.role}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           >
-            <option value="all">全部</option>
-            <option value="tutors">導師</option>
-            <option value="cases">個案</option>
+            <option value="">不限</option>
+            <option value="student">學生</option>
+            <option value="tutor">導師</option>
           </select>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          >
-            搜尋
-          </button>
         </div>
-      </form>
-    </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">性別偏好</label>
+          <select
+            name="genderPreference"
+            value={searchParams.genderPreference}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          >
+            <option value="">不限</option>
+            <option value="male">男</option>
+            <option value="female">女</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="mt-4 flex justify-end">
+        <button
+          type="submit"
+          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          搜尋
+        </button>
+      </div>
+    </form>
   );
 };
 

@@ -1,126 +1,112 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
-import api from '../services/api';
 
 const CaseList = () => {
-  const { user } = useAuth();
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [appliedCases, setAppliedCases] = useState(new Set());
+  const [appliedCases, setAppliedCases] = useState([]);
+  const { user } = useAuth();
 
-  // 獲取已審核的個案列表
   const fetchCases = async () => {
     try {
-      setLoading(true);
-      setError(null);
-      const response = await api.get('/api/cases?verified=true');
+      const response = await axios.get('/api/cases?verified=true');
       setCases(response.data);
-    } catch (err) {
-      console.error('獲取個案列表失敗:', err);
-      setError(err.message || '獲取個案列表失敗');
+    } catch (error) {
+      setError('Error fetching cases');
+      console.error('Error:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  // 獲取已申請的個案
   const fetchAppliedCases = async () => {
     try {
-      const response = await api.get('/api/cases/applied');
-      const appliedIds = new Set(response.data.map(case => case.id));
-      setAppliedCases(appliedIds);
-    } catch (err) {
-      console.error('獲取已申請個案失敗:', err);
+      const response = await axios.get('/api/cases/applied');
+      setAppliedCases(response.data);
+    } catch (error) {
+      console.error('Error fetching applied cases:', error);
     }
   };
 
-  // 申請個案
   const handleApply = async (caseId) => {
     try {
-      await api.post(`/api/cases/${caseId}/apply`);
-      setAppliedCases(prev => new Set([...prev, caseId]));
-      alert('申請成功！');
-    } catch (err) {
-      alert(err.response?.data?.message || '申請失敗，請稍後再試');
+      await axios.post(`/api/cases/${caseId}/apply`);
+      fetchAppliedCases();
+      alert('Application submitted successfully!');
+    } catch (error) {
+      alert(error.response?.data?.message || 'Error applying for case');
     }
+  };
+
+  const getApplicationStatus = (caseId) => {
+    const application = appliedCases.find(app => app.case._id === caseId);
+    return application ? application.status : null;
   };
 
   useEffect(() => {
     fetchCases();
-    if (user?.role === 'tutor') {
+    if (user) {
       fetchAppliedCases();
     }
   }, [user]);
 
-  if (loading) {
-    return <div className="text-center py-8">載入中...</div>;
-  }
-
-  if (error) {
-    return (
-      <div className="text-center py-8 text-red-600">
-        錯誤: {error}
-        <button 
-          onClick={fetchCases}
-          className="ml-4 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-        >
-          重試
-        </button>
-      </div>
-    );
-  }
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6">補習個案列表</h2>
-      <div className="space-y-6">
-        {cases.length > 0 ? (
-          cases.map(caseItem => (
-            <div key={caseItem.id} className="bg-white shadow rounded-lg p-6">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-xl font-semibold">{caseItem.title}</h3>
-                  <p className="text-gray-600 mt-1">科目：{caseItem.subject}</p>
-                  <p className="text-gray-600">地區：{caseItem.location}</p>
-                  <p className="text-gray-600">堂費：${caseItem.fee}/小時</p>
+    <div className="container mx-auto px-4 py-8">
+      <h2 className="text-2xl font-bold mb-6">Available Cases</h2>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {cases.map((caseItem) => {
+          const applicationStatus = getApplicationStatus(caseItem._id);
+          const canViewContact = user && (
+            user._id === caseItem.student._id ||
+            applicationStatus === 'approved'
+          );
+
+          return (
+            <div key={caseItem._id} className="bg-white rounded-lg shadow-md p-6">
+              <h3 className="text-xl font-semibold mb-2">{caseItem.title}</h3>
+              <p className="text-gray-600 mb-2">Subject: {caseItem.subject}</p>
+              <p className="text-gray-600 mb-2">Location: {caseItem.location}</p>
+              <p className="text-gray-600 mb-2">Fee: ${caseItem.fee}/hour</p>
+              <p className="text-gray-600 mb-4">Requirements: {caseItem.requirements}</p>
+              
+              {canViewContact ? (
+                <div className="mb-4">
+                  <h4 className="font-semibold mb-2">Contact Information:</h4>
+                  <p className="text-gray-600">Schedule: {caseItem.schedule}</p>
+                  <p className="text-gray-600">Contact: {caseItem.contact}</p>
                 </div>
-                {user?.role === 'tutor' && (
-                  <button
-                    onClick={() => handleApply(caseItem.id)}
-                    disabled={appliedCases.has(caseItem.id)}
-                    className={`px-4 py-2 rounded-md ${
-                      appliedCases.has(caseItem.id)
-                        ? 'bg-gray-300 cursor-not-allowed'
-                        : 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                    }`}
-                  >
-                    {appliedCases.has(caseItem.id) ? '已申請' : '申請個案'}
-                  </button>
-                )}
-              </div>
-              
-              <div className="mt-4">
-                <h4 className="font-medium">要求：</h4>
-                <p className="text-gray-700 mt-1">{caseItem.requirements}</p>
-              </div>
-              
-              <div className="mt-4">
-                <h4 className="font-medium">上課時間：</h4>
-                <p className="text-gray-700 mt-1">{caseItem.schedule}</p>
-              </div>
-              
-              <div className="mt-4">
-                <h4 className="font-medium">聯絡方式：</h4>
-                <p className="text-gray-700 mt-1">{caseItem.contact}</p>
-              </div>
+              ) : (
+                <p className="text-gray-500 italic mb-4">
+                  Contact information will be available after your application is approved
+                </p>
+              )}
+
+              {user && user.role === 'tutor' && !applicationStatus && (
+                <button
+                  onClick={() => handleApply(caseItem._id)}
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                >
+                  Apply
+                </button>
+              )}
+
+              {applicationStatus && (
+                <div className={`mt-2 p-2 rounded ${
+                  applicationStatus === 'approved' ? 'bg-green-100 text-green-800' :
+                  applicationStatus === 'rejected' ? 'bg-red-100 text-red-800' :
+                  'bg-yellow-100 text-yellow-800'
+                }`}>
+                  Status: {applicationStatus.charAt(0).toUpperCase() + applicationStatus.slice(1)}
+                </div>
+              )}
             </div>
-          ))
-        ) : (
-          <div className="text-center py-8 text-gray-600">
-            暫無可用的補習個案
-          </div>
-        )}
+          );
+        })}
       </div>
     </div>
   );

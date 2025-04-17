@@ -1,49 +1,31 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { adAPI } from '../../services/api';
+import axios from 'axios';
+import { format } from 'date-fns';
 
-export default function AdminAdList() {
+const AdminAdsPage = () => {
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [formData, setFormData] = useState({
+    title: '',
+    imageUrl: '',
+    link: '',
+    position: 'header',
+    startDate: '',
+    endDate: '',
+    advertiser: ''
+  });
 
-  // 獲取廣告列表
   const fetchAds = async () => {
     try {
-      setLoading(true);
-      setError(null);
-      const data = await adAPI.getAds();
-      setAds(data);
-    } catch (err) {
-      console.error('獲取廣告列表失敗:', err);
-      setError(err.message || '獲取廣告列表失敗');
+      const response = await axios.get('/api/advertisements');
+      setAds(response.data);
+    } catch (error) {
+      setError('Error fetching advertisements');
+      console.error('Error:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  // 更新廣告狀態（啟用/停用）
-  const handleToggleAdStatus = async (adId, currentStatus) => {
-    try {
-      await adAPI.updateAdStatus(adId, !currentStatus);
-      // 重新獲取廣告列表
-      fetchAds();
-      alert(`廣告已${!currentStatus ? '啟用' : '停用'}`);
-    } catch (err) {
-      console.error('更新廣告狀態失敗:', err);
-      alert(err.message || '更新廣告狀態失敗');
-    }
-  };
-
-  // 查看廣告詳情
-  const handleViewAd = async (adId) => {
-    try {
-      const ad = await adAPI.getAd(adId);
-      // 這裡可以顯示廣告詳情，例如使用模態框
-      alert(`廣告詳情: ${JSON.stringify(ad, null, 2)}`);
-    } catch (err) {
-      console.error('獲取廣告詳情失敗:', err);
-      alert(err.message || '獲取廣告詳情失敗');
     }
   };
 
@@ -51,65 +33,232 @@ export default function AdminAdList() {
     fetchAds();
   }, []);
 
-  if (loading) {
-    return <div style={{ padding: 30 }}>載入中...</div>;
-  }
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
-  if (error) {
-    return (
-      <div style={{ padding: 30, color: 'red' }}>
-        錯誤: {error}
-        <button 
-          onClick={fetchAds}
-          style={{ marginLeft: 10, padding: '5px 10px' }}
-        >
-          重試
-        </button>
-      </div>
-    );
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post('/api/advertisements', formData);
+      fetchAds();
+      setFormData({
+        title: '',
+        imageUrl: '',
+        link: '',
+        position: 'header',
+        startDate: '',
+        endDate: '',
+        advertiser: ''
+      });
+    } catch (error) {
+      alert(error.response?.data?.message || 'Error creating advertisement');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this advertisement?')) {
+      try {
+        await axios.delete(`/api/advertisements/${id}`);
+        fetchAds();
+      } catch (error) {
+        alert(error.response?.data?.message || 'Error deleting advertisement');
+      }
+    }
+  };
+
+  const handleToggleActive = async (id, currentActive) => {
+    try {
+      await axios.patch(`/api/advertisements/${id}`, {
+        active: !currentActive
+      });
+      fetchAds();
+    } catch (error) {
+      alert(error.response?.data?.message || 'Error updating advertisement');
+    }
+  };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
-    <div style={{ padding: 30 }}>
-      <h2>廣告管理</h2>
-      <table border="1" cellPadding="10" cellSpacing="0" style={{ width: '100%', marginTop: 20 }}>
-        <thead>
-          <tr>
-            <th>廣告商名稱</th>
-            <th>套餐類型</th>
-            <th>連結</th>
-            <th>顯示模式</th>
-            <th>狀態</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          {ads.length > 0 ? (
-            ads.map(ad => (
-              <tr key={ad.id}>
-                <td>{ad.name}</td>
-                <td>{ad.type}</td>
-                <td><a href={ad.link} target="_blank" rel="noopener noreferrer">{ad.link}</a></td>
-                <td>{ad.mode}</td>
-                <td>{ad.active ? '啟用中' : '已停用'}</td>
-                <td>
-                  <button onClick={() => handleViewAd(ad.id)}>查看</button>
-                  <button 
-                    style={{ marginLeft: 10 }} 
-                    onClick={() => handleToggleAdStatus(ad.id, ad.active)}
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold mb-6">Advertisement Management</h1>
+
+      {/* Add New Advertisement Form */}
+      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md mb-8">
+        <h2 className="text-xl font-semibold mb-4">Add New Advertisement</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Title</label>
+            <input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleInputChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Image URL</label>
+            <input
+              type="url"
+              name="imageUrl"
+              value={formData.imageUrl}
+              onChange={handleInputChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Link</label>
+            <input
+              type="url"
+              name="link"
+              value={formData.link}
+              onChange={handleInputChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Position</label>
+            <select
+              name="position"
+              value={formData.position}
+              onChange={handleInputChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              required
+            >
+              <option value="header">Header</option>
+              <option value="sidebar">Sidebar</option>
+              <option value="footer">Footer</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Start Date</label>
+            <input
+              type="datetime-local"
+              name="startDate"
+              value={formData.startDate}
+              onChange={handleInputChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">End Date</label>
+            <input
+              type="datetime-local"
+              name="endDate"
+              value={formData.endDate}
+              onChange={handleInputChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Advertiser ID</label>
+            <input
+              type="text"
+              name="advertiser"
+              value={formData.advertiser}
+              onChange={handleInputChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              required
+            />
+          </div>
+        </div>
+        <div className="mt-4">
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Add Advertisement
+          </button>
+        </div>
+      </form>
+
+      {/* Advertisement List */}
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Title
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Position
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Period
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Clicks
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {ads.map((ad) => (
+              <tr key={ad._id}>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm font-medium text-gray-900">{ad.title}</div>
+                  <div className="text-sm text-gray-500">{ad.link}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                    {ad.position}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-900">
+                    {format(new Date(ad.startDate), 'MMM d, yyyy')}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    to {format(new Date(ad.endDate), 'MMM d, yyyy')}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {ad.clicks}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <button
+                    onClick={() => handleToggleActive(ad._id, ad.active)}
+                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      ad.active
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}
                   >
-                    {ad.active ? '停用' : '啟用'}
+                    {ad.active ? 'Active' : 'Inactive'}
+                  </button>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <button
+                    onClick={() => handleDelete(ad._id)}
+                    className="text-red-600 hover:text-red-900"
+                  >
+                    Delete
                   </button>
                 </td>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="6" style={{ textAlign: 'center' }}>暫無廣告數據</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
-}
+};
+
+export default AdminAdsPage;
