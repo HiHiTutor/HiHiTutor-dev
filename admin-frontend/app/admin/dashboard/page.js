@@ -16,7 +16,8 @@ import {
   Box,
   IconButton,
   useTheme,
-  styled
+  styled,
+  Alert
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -61,11 +62,46 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await axios.get('/api/stats');
-        setStats(response.data);
-        setLoading(false);
+        const token = localStorage.getItem('adminToken');
+        if (!token) {
+          setError('未登入或登入已過期，請重新登入');
+          setLoading(false);
+          return;
+        }
+
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE}/stats`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.data) {
+          setStats(response.data);
+        } else {
+          setError('無法獲取統計數據');
+        }
       } catch (err) {
-        setError('Failed to fetch statistics');
+        console.error('Error fetching stats:', err);
+        if (err.response) {
+          switch (err.response.status) {
+            case 401:
+              setError('登入已過期，請重新登入');
+              break;
+            case 403:
+              setError('沒有權限訪問此資源');
+              break;
+            case 404:
+              setError('API 端點不存在');
+              break;
+            default:
+              setError(`獲取數據時發生錯誤: ${err.response.status} ${err.response.statusText}`);
+          }
+        } else if (err.request) {
+          setError('無法連接到伺服器，請檢查網絡連接');
+        } else {
+          setError(`發生錯誤: ${err.message}`);
+        }
+      } finally {
         setLoading(false);
       }
     };
@@ -81,8 +117,21 @@ export default function AdminDashboard() {
     { text: 'Statistics', icon: <BarChartIcon />, path: '/admin/stats' },
   ];
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Typography>Loading...</Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error">{error}</Alert>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ display: 'flex' }}>
