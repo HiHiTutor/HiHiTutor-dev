@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, Typography, Grid, Skeleton, Box } from '@mui/material';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import statsAPI from '@/app/services/api';
+import statsAPI from '../../../services/api';
 
 // 自定義主題
 const theme = {
