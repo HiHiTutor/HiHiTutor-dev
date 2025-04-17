@@ -1,5 +1,5 @@
 // API 服務
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE;
+import axios from './axios';
 
 // 通用請求函數
 async function fetchAPI(endpoint, options = {}) {
@@ -49,87 +49,74 @@ async function fetchAPI(endpoint, options = {}) {
 // 用戶相關 API
 export const userAPI = {
   // 獲取用戶列表
-  getUsers: () => fetchAPI('/api/admin/users'),
+  getUsers: () => axios.get('/api/admin/users'),
   
   // 獲取單個用戶詳情
-  getUser: (id) => fetchAPI(`/api/admin/users/${id}`),
+  getUser: (id) => axios.get(`/api/admin/users/${id}`),
   
   // 更新用戶狀態（如審核）
   updateUserStatus: (id, status) => 
-    fetchAPI(`/api/admin/users/${id}/status`, {
-      method: 'PATCH',
-      body: JSON.stringify({ status }),
-    }),
+    axios.patch(`/api/admin/users/${id}/status`, { status }),
 };
 
 // 廣告相關 API
 export const adAPI = {
   // 獲取廣告列表
-  getAds: () => fetchAPI('/api/admin/ads'),
+  getAds: () => axios.get('/api/admin/ads'),
   
   // 獲取單個廣告詳情
-  getAd: (id) => fetchAPI(`/api/admin/ads/${id}`),
+  getAd: (id) => axios.get(`/api/admin/ads/${id}`),
   
   // 創建新廣告
   createAd: (adData) => 
-    fetchAPI('/api/admin/ads', {
-      method: 'POST',
-      body: JSON.stringify(adData),
-    }),
+    axios.post('/api/admin/ads', adData),
   
   // 更新廣告
   updateAd: (id, adData) => 
-    fetchAPI(`/api/admin/ads/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(adData),
-    }),
+    axios.put(`/api/admin/ads/${id}`, adData),
   
   // 更新廣告狀態（啟用/停用）
   updateAdStatus: (id, active) => 
-    fetchAPI(`/api/admin/ads/${id}/status`, {
-      method: 'PATCH',
-      body: JSON.stringify({ active }),
-    }),
+    axios.patch(`/api/admin/ads/${id}/status`, { active }),
   
   // 刪除廣告
   deleteAd: (id) => 
-    fetchAPI(`/api/admin/ads/${id}`, {
-      method: 'DELETE',
-    }),
+    axios.delete(`/api/admin/ads/${id}`),
 };
 
 // 個案相關 API
 export const caseAPI = {
   // 獲取個案列表
-  getCases: () => fetchAPI('/api/admin/cases'),
+  getCases: () => axios.get('/api/admin/cases'),
   
   // 獲取單個個案詳情
-  getCase: (id) => fetchAPI(`/api/admin/cases/${id}`),
+  getCase: (id) => axios.get(`/api/admin/cases/${id}`),
   
   // 更新個案狀態（如審核）
   updateCaseStatus: (id, status) => 
-    fetchAPI(`/api/admin/cases/${id}/status`, {
-      method: 'PATCH',
-      body: JSON.stringify({ status }),
-    }),
+    axios.patch(`/api/admin/cases/${id}/status`, { status }),
+};
+
+// 統計相關 API
+export const statsAPI = {
+  // 獲取統計數據
+  getStats: () => axios.get('/api/admin/stats'),
 };
 
 // 認證相關 API
 export const authAPI = {
   // 管理員登入
   login: (credentials) => 
-    fetchAPI('/api/users/adminLogin', {
-      method: 'POST',
-      body: JSON.stringify(credentials),
-    }),
+    axios.post('/api/users/adminLogin', credentials),
   
   // 獲取當前管理員信息
-  getCurrentAdmin: () => fetchAPI('/api/users/me'),
+  getCurrentAdmin: () => axios.get('/api/users/me'),
 };
 
 export default {
   userAPI,
   adAPI,
   caseAPI,
+  statsAPI,
   authAPI,
 }; 

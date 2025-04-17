@@ -9,6 +9,7 @@ import {
   ChartBarIcon
 } from '@heroicons/react/24/outline';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { statsAPI } from '../../services/api';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
@@ -18,24 +19,9 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const token = localStorage.getItem('adminToken');
-        if (!token) {
-          setError('未登入或登入已過期，請重新登入');
-          setLoading(false);
-          return;
-        }
-
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/stats`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
+        setLoading(true);
+        setError(null);
+        const data = await statsAPI.getStats();
         setStats(data);
       } catch (err) {
         console.error('Error fetching stats:', err);
