@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { userAPI } from '../../services/api';
+import { userAPI } from '@/services/api';
 
 export default function AdminUserList() {
   const [users, setUsers] = useState([]);

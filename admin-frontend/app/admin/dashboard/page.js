@@ -9,7 +9,7 @@ import {
   ChartBarIcon
 } from '@heroicons/react/24/outline';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { statsAPI } from '../../services/api';
+import { statsAPI } from '@/services/api';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);

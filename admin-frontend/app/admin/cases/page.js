@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { caseAPI } from '../../services/api';
+import { caseAPI } from '@/services/api';
 
 export default function AdminCaseList() {
   const [cases, setCases] = useState([]);

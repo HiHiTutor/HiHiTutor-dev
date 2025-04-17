@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
-import { adAPI } from '../../services/api';
+import { adAPI } from '@/services/api';
 
 const AdminAdsPage = () => {
   const [ads, setAds] = useState([]);
