@@ -63,6 +63,23 @@ const caseSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
     default: Date.now
+  },
+  subscription: {
+    type: String,
+    enum: ['active', 'cancelled', 'expired'],
+    default: 'active'
+  },
+  paymentId: {
+    type: String,
+    required: true
+  },
+  autoRenew: {
+    type: Boolean,
+    default: true
+  },
+  startDate: {
+    type: Date,
+    default: Date.now
   }
 });
 

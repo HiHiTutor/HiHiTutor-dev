@@ -1,5 +1,5 @@
 // API 服務
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE;
 
 // 通用請求函數
 async function fetchAPI(endpoint, options = {}) {

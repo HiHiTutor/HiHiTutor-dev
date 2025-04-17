@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 創建 axios 實例
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3001',
+  baseURL: process.env.REACT_APP_API_BASE,
   headers: {
     'Content-Type': 'application/json',
   },

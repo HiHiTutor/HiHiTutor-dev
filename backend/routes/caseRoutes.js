@@ -4,16 +4,40 @@ const { auth, adminAuth } = require('../middleware/auth');
 const Case = require('../models/Case');
 const Application = require('../models/Application');
 const { createNotification } = require('../services/notificationService');
+const { checkSubscription, checkFeature } = require('../middleware/checkSubscription');
 
-// Get all cases
+// Get all cases (with filters)
 router.get('/', async (req, res) => {
   try {
-    const { verified } = req.query;
-    const query = verified === 'true' ? { verified: true } : {};
-    const cases = await Case.find(query).populate('student', 'name email');
+    const match = { status: 'active' };
+    const sort = {};
+
+    if (req.query.subject) {
+      match.subject = req.query.subject;
+    }
+    if (req.query.location) {
+      match.location = req.query.location;
+    }
+    if (req.query.minFee) {
+      match.fee = { $gte: Number(req.query.minFee) };
+    }
+    if (req.query.maxFee) {
+      match.fee = { ...match.fee, $lte: Number(req.query.maxFee) };
+    }
+    if (req.query.sortBy) {
+      const parts = req.query.sortBy.split(':');
+      sort[parts[0]] = parts[1] === 'desc' ? -1 : 1;
+    }
+
+    const cases = await Case.find(match)
+      .populate('student', 'name')
+      .sort(sort)
+      .limit(parseInt(req.query.limit))
+      .skip(parseInt(req.query.skip));
+
     res.json(cases);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -57,28 +81,19 @@ router.get('/applied', auth, async (req, res) => {
 });
 
 // Create new case
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, checkSubscription('cases'), async (req, res) => {
   try {
-    const { title, subject, location, fee, requirements, schedule, contact } = req.body;
-    if (!title || !subject || !location || !fee || !requirements || !schedule || !contact) {
-      return res.status(400).json({ message: 'All fields are required' });
-    }
-
     const newCase = new Case({
-      title,
-      subject,
-      location,
-      fee,
-      requirements,
-      schedule,
-      contact,
-      student: req.user._id
+      ...req.body,
+      student: req.user.id,
+      features: {
+        priority: req.subscription.features.prioritySupport || false
+      }
     });
-
     await newCase.save();
     res.status(201).json(newCase);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -189,6 +204,78 @@ router.patch('/:id/verify', adminAuth, async (req, res) => {
     res.json(caseItem);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+});
+
+// Get user's cases
+router.get('/my', auth, async (req, res) => {
+  try {
+    const cases = await Case.find({ student: req.user.id })
+      .sort({ createdAt: -1 });
+    res.json(cases);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get case analytics
+router.get('/analytics', auth, checkFeature('analytics'), async (req, res) => {
+  try {
+    const cases = await Case.find({ student: req.user.id });
+    const analytics = {
+      total: cases.length,
+      active: cases.filter(c => c.status === 'active').length,
+      completed: cases.filter(c => c.status === 'completed').length,
+      averageFee: cases.reduce((acc, c) => acc + c.fee, 0) / cases.length || 0,
+      bySubject: cases.reduce((acc, c) => {
+        acc[c.subject] = (acc[c.subject] || 0) + 1;
+        return acc;
+      }, {}),
+      byLocation: cases.reduce((acc, c) => {
+        acc[c.location] = (acc[c.location] || 0) + 1;
+        return acc;
+      }, {})
+    };
+    res.json(analytics);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update case
+router.patch('/:id', auth, async (req, res) => {
+  const updates = Object.keys(req.body);
+  const allowedUpdates = ['title', 'description', 'subject', 'fee', 'location', 'requirements', 'schedule', 'status'];
+  const isValidOperation = updates.every(update => allowedUpdates.includes(update));
+
+  if (!isValidOperation) {
+    return res.status(400).json({ error: 'Invalid updates' });
+  }
+
+  try {
+    const targetCase = await Case.findOne({ _id: req.params.id, student: req.user.id });
+    if (!targetCase) {
+      return res.status(404).json({ error: 'Case not found' });
+    }
+
+    updates.forEach(update => targetCase[update] = req.body[update]);
+    await targetCase.save();
+    res.json(targetCase);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Delete case
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const targetCase = await Case.findOneAndDelete({ _id: req.params.id, student: req.user.id });
+    if (!targetCase) {
+      return res.status(404).json({ error: 'Case not found' });
+    }
+    res.json({ message: 'Case deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
