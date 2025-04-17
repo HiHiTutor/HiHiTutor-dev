@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiHiTutor - 您的專業教育配對平台</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- 添加 Font Awesome 圖標 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container-wrapper">
+        <!-- 頂部導航欄 -->
+        <nav class="bg-white shadow-sm w-full">
+            <div class="max-w-7xl mx-auto">
+                <!-- Logo 和按鈕區 -->
+                <div class="border-b">
+                    <div class="max-w-7xl mx-auto px-4 py-4">
+                        <div class="flex justify-between items-center">
+                            <!-- Logo -->
+                            <div class="logo">
+                                <a href="/" class="block">
+                                    <img src="images/HiHiTutor_Logo.png" alt="HiHiTutor Logo" class="logo-image">
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 選項欄 -->
+                <div class="max-w-7xl mx-auto px-4 py-3">
+                    <div class="flex justify-between items-center">
+                        <div class="flex space-x-8">
+                            <a href="#" class="nav-link active">主頁</a>
+                            <a href="#" class="nav-link">尋導師</a>
+                            <a href="#" class="nav-link">招學生</a>
+                            <a href="#" class="nav-link">教育專欄</a>
+                            <a href="#" class="nav-link">常見問題</a>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <button class="nav-button yellow">尋導師</button>
+                            <button class="nav-button blue">招學生</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 主要內容區 -->
+        <div class="blackboard-background w-full">
+            <div class="max-w-7xl mx-auto">
+                <div class="grid grid-cols-12 gap-8">
+                    <!-- 左側和中間內容 -->
+                    <div class="col-span-9">
+                        <!-- Banner 區域 -->
+                        <div class="section-container yellow-border mb-8">
+                            <img src="images/banner.png" alt="教育橫幅" class="banner-image w-full rounded-lg">
+                        </div>
+
+                        <!-- 功能圖標區 -->
+                        <div class="section-container blue-border mb-8">
+                            <div class="grid grid-cols-5 gap-8">
+                                <div class="text-center">
+                                    <div class="feature-icon bg-blue-100">
+                                        <i class="fas fa-thumbs-up text-blue-500"></i>
+                                    </div>
+                                    <div class="feature-text">推薦</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="feature-icon bg-pink-100">
+                                        <i class="fas fa-baby text-pink-500"></i>
+                                    </div>
+                                    <div class="feature-text">幼兒教育</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="feature-icon bg-yellow-100">
+                                        <i class="fas fa-school text-yellow-500"></i>
+                                    </div>
+                                    <div class="feature-text">中小學教育</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="feature-icon bg-purple-100">
+                                        <i class="fas fa-users-class text-purple-500"></i>
+                                    </div>
+                                    <div class="feature-text">興趣班</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="feature-icon bg-green-100">
+                                        <i class="fas fa-user-graduate text-green-500"></i>
+                                    </div>
+                                    <div class="feature-text">成人教育</div>
+                                </div>
+                            </div>
+                            
+                            <!-- 熱門科目標籤 -->
+                            <div class="mt-6 flex items-center">
+                                <span class="hot-topics-label">熱門:</span>
+                                <div class="hot-topics-list" id="hotTopics">
+                                    <!-- 熱門科目將由 JavaScript 動態生成 -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 搜尋區域 -->
+                        <div class="mb-8">
+                            <div class="search-container">
+                                <span class="search-label">科目：</span>
+                                <input type="text" class="search-input" placeholder="輸入科目、導師或課程關鍵字">
+                                <button class="search-button">
+                                    <i class="fas fa-search mr-2"></i>搜尋
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 推薦導師區塊 -->
+                        <div class="section-container green-border mb-8">
+                            <h2 class="text-xl font-bold mb-6">推薦導師</h2>
+                            <div class="grid grid-cols-3 gap-6" id="featured-tutors">
+                                <!-- 導師卡片將由 JavaScript 動態生成 -->
+                            </div>
+                            <div class="flex justify-end mt-6">
+                                <a href="#" class="show-more-btn green">
+                                    <span>顯示更多</span>
+                                    <i class="fas fa-chevron-right ml-2"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- 導師和個案之間的廣告位置 -->
+                        <div class="section-container blue-border mb-8 text-center">
+                            廣告位置
+                        </div>
+
+                        <!-- 最新個案區塊 -->
+                        <div class="section-container yellow-border mb-8">
+                            <h2 class="text-xl font-bold mb-6">最新補習個案</h2>
+                            <div class="grid grid-cols-3 gap-6" id="latest-cases">
+                                <!-- 個案卡片將由 JavaScript 動態生成 -->
+                            </div>
+                            <div class="flex justify-end mt-6">
+                                <a href="#" class="show-more-btn yellow">
+                                    <span>顯示更多</span>
+                                    <i class="fas fa-chevron-right ml-2"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- 最新優惠資訊 -->
+                        <div class="section-container">
+                            <h2 class="text-xl font-bold mb-6">最新優惠及資訊</h2>
+                            <div class="space-y-4">
+                                <div class="promo-card green">
+                                    <h3 class="font-bold text-green-800 text-lg">成功轉介 - 即可獲取現金$100</h3>
+                                    <p class="text-green-700 mt-2">額外獎賞$2000</p>
+                                    <button class="mt-4 bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600">
+                                        查看詳情
+                                    </button>
+                                </div>
+                                <div class="promo-card orange">
+                                    <h3 class="font-bold text-orange-800 text-lg">日日都有筍工</h3>
+                                    <p class="text-orange-700 mt-2">每週更新最新補習機會</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右側邊欄 -->
+                    <div class="col-span-3">
+                        <!-- 會員選項 -->
+                        <div class="section-container mb-6">
+                            <div class="member-links space-y-3">
+                                <a href="#" class="member-link">
+                                    <i class="fas fa-user mr-2"></i>會員登入
+                                </a>
+                                <a href="#" class="member-link">
+                                    <i class="fas fa-user-plus mr-2"></i>會員註冊
+                                </a>
+                                <a href="#" class="member-link">
+                                    <i class="fas fa-envelope mr-2"></i>聯絡我們
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- 廣告位置 -->
+                        <div class="section-container blue-border text-center mb-6">
+                            廣告位置
+                        </div>
+
+                        <!-- 熱門科目統計 -->
+                        <div class="section-container mb-6">
+                            <h3 class="font-bold text-lg mb-4">熱門科目</h3>
+                            <div class="subject-stats space-y-4">
+                                <div>
+                                    <div class="flex justify-between mb-2">
+                                        <span class="text-sm">數學</span>
+                                        <span class="text-sm text-gray-500">80%</span>
+                                    </div>
+                                    <div class="stat-bar">
+                                        <div class="stat-bar-fill" style="width: 80%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between mb-2">
+                                        <span class="text-sm">英文</span>
+                                        <span class="text-sm text-gray-500">70%</span>
+                                    </div>
+                                    <div class="stat-bar">
+                                        <div class="stat-bar-fill" style="width: 70%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between mb-2">
+                                        <span class="text-sm">中文</span>
+                                        <span class="text-sm text-gray-500">60%</span>
+                                    </div>
+                                    <div class="stat-bar">
+                                        <div class="stat-bar-fill" style="width: 60%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 更多廣告位置 -->
+                        <div class="space-y-6">
+                            <div class="section-container blue-border text-center">廣告位置</div>
+                            <div class="section-container blue-border text-center">廣告位置</div>
+                            <div class="section-container blue-border text-center">廣告位置</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部 -->
+        <footer class="bg-white mt-8 py-8 w-full">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex justify-center space-x-4">
+                    <img src="images/app-store.png" alt="App Store" class="h-10">
+                    <img src="images/google-play.png" alt="Google Play" class="h-10">
+                    <img src="images/app-gallery.png" alt="App Gallery" class="h-10">
+                </div>
+                <div class="text-center text-gray-500 text-sm mt-4">
+                    © 2024 HiHiTutor All Rights Reserved.
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script src="js/searchbar.js"></script>
+</body>
+</html> 
