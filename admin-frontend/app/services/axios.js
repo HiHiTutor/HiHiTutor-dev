@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 創建 Axios 實例
 const axiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE,
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -41,8 +41,13 @@ axiosInstance.interceptors.response.use(
       }
     }
     
+    // 處理非 JSON 響應
+    if (error.response && error.response.data && typeof error.response.data === 'string') {
+      return Promise.reject({ message: '伺服器返回了非預期的響應格式' });
+    }
+    
     // 返回錯誤信息
-    return Promise.reject(error.response?.data || error);
+    return Promise.reject(error.response?.data || { message: '請求失敗，請稍後再試' });
   }
 );
 

@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
 import { format } from 'date-fns';
+import { adAPI } from '../../services/api';
 
 const AdminAdsPage = () => {
   const [ads, setAds] = useState([]);
@@ -19,11 +19,13 @@ const AdminAdsPage = () => {
 
   const fetchAds = async () => {
     try {
-      const response = await axios.get('/api/advertisements');
-      setAds(response.data);
-    } catch (error) {
-      setError('Error fetching advertisements');
-      console.error('Error:', error);
+      setLoading(true);
+      setError(null);
+      const data = await adAPI.getAds();
+      setAds(data);
+    } catch (err) {
+      console.error('獲取廣告列表失敗:', err);
+      setError(err.message || '獲取廣告列表失敗');
     } finally {
       setLoading(false);
     }
@@ -44,7 +46,7 @@ const AdminAdsPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('/api/advertisements', formData);
+      await adAPI.createAd(formData);
       fetchAds();
       setFormData({
         title: '',
@@ -55,30 +57,34 @@ const AdminAdsPage = () => {
         endDate: '',
         advertiser: ''
       });
-    } catch (error) {
-      alert(error.response?.data?.message || 'Error creating advertisement');
+      alert('廣告創建成功');
+    } catch (err) {
+      console.error('創建廣告失敗:', err);
+      alert(err.message || '創建廣告失敗');
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this advertisement?')) {
+    if (window.confirm('確定要刪除這個廣告嗎？')) {
       try {
-        await axios.delete(`/api/advertisements/${id}`);
+        await adAPI.deleteAd(id);
         fetchAds();
-      } catch (error) {
-        alert(error.response?.data?.message || 'Error deleting advertisement');
+        alert('廣告刪除成功');
+      } catch (err) {
+        console.error('刪除廣告失敗:', err);
+        alert(err.message || '刪除廣告失敗');
       }
     }
   };
 
   const handleToggleActive = async (id, currentActive) => {
     try {
-      await axios.patch(`/api/advertisements/${id}`, {
-        active: !currentActive
-      });
+      await adAPI.updateAdStatus(id, !currentActive);
       fetchAds();
-    } catch (error) {
-      alert(error.response?.data?.message || 'Error updating advertisement');
+      alert(`廣告${!currentActive ? '啟用' : '停用'}成功`);
+    } catch (err) {
+      console.error('更新廣告狀態失敗:', err);
+      alert(err.message || '更新廣告狀態失敗');
     }
   };
 

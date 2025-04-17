@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import {
   BarChart,
   Bar,
@@ -12,6 +11,7 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
+import { statsAPI } from '../../services/api';
 
 const StatsPage = () => {
   const [stats, setStats] = useState(null);
@@ -20,11 +20,13 @@ const StatsPage = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await axios.get('/api/stats');
-      setStats(response.data);
-    } catch (error) {
-      setError('Error fetching statistics');
-      console.error('Error:', error);
+      setLoading(true);
+      setError(null);
+      const data = await statsAPI.getStats();
+      setStats(data);
+    } catch (err) {
+      console.error('獲取統計數據失敗:', err);
+      setError(err.message || '獲取統計數據失敗');
     } finally {
       setLoading(false);
     }

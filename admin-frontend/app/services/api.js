@@ -1,51 +1,6 @@
 // API 服務
 import axios from './axios';
 
-// 通用請求函數
-async function fetchAPI(endpoint, options = {}) {
-  const url = `${API_BASE_URL}${endpoint}`;
-  
-  // 從 localStorage 獲取 token
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-  
-  // 設置默認請求頭
-  const headers = {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...options.headers,
-  };
-  
-  try {
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    });
-    
-    // 處理 401 未授權錯誤
-    if (response.status === 401) {
-      // 如果在客戶端，清除 token 並重定向到登入頁面
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
-        window.location.href = '/admin/login';
-      }
-      throw new Error('未授權，請重新登入');
-    }
-    
-    // 解析 JSON 響應
-    const data = await response.json();
-    
-    // 如果響應不成功，拋出錯誤
-    if (!response.ok) {
-      throw new Error(data.message || '請求失敗');
-    }
-    
-    return data;
-  } catch (error) {
-    console.error('API 請求錯誤:', error);
-    throw error;
-  }
-}
-
 // 用戶相關 API
 export const userAPI = {
   // 獲取用戶列表
