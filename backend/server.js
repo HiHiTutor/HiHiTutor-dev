@@ -1,10 +1,9 @@
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
-const dotenv = require('dotenv');
-
-dotenv.config();
 
 // 引入路由
 const userRoutes = require('./src/routes/userRoutes');
@@ -67,17 +66,16 @@ app.use((err, req, res, next) => {
 });
 
 // 連接資料庫
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/testtutor', {
+mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
 .then(() => {
   console.log('MongoDB 連接成功');
   // 啟動伺服器
-  const PORT = 5000;
+  const PORT = process.env.PORT || 5000;
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`後端服務器運行在 http://localhost:${PORT}`);
-    console.log(`後端服務器運行在 http://127.0.0.1:${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
   });
 })
 .catch(err => {
