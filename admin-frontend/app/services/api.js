@@ -15,14 +15,14 @@ export const caseAPI = {
 };
 
 export const adAPI = {
-  getAll: () => axiosInstance.get('/api/admin/advertisements'),
-  create: (data) => axiosInstance.post('/api/admin/advertisements', data),
-  update: (id, data) => axiosInstance.patch(`/api/admin/advertisements/${id}`, data),
-  delete: (id) => axiosInstance.delete(`/api/admin/advertisements/${id}`)
+  getAll: () => axiosInstance.get('/api/ads'),
+  create: (data) => axiosInstance.post('/api/ads', data),
+  update: (id, data) => axiosInstance.patch(`/api/ads/${id}`, data),
+  delete: (id) => axiosInstance.delete(`/api/ads/${id}`)
 };
 
 export const statsAPI = {
-  getDashboard: () => axiosInstance.get('/api/admin/stats/dashboard'),
+  getDashboard: () => axiosInstance.get('/api/admin/stats'),
   getStats: () => axiosInstance.get('/api/admin/stats')
 };
 
