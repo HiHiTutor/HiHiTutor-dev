@@ -49,13 +49,13 @@ app.get('/', (req, res) => {
 });
 
 // 使用路由
+app.use('/api/admin/dashboard', dashboardRoutes);  // 更具體的路徑先匹配
+app.use('/api/admin', adminRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/sms', smsRoutes);
 app.use('/api/cases', caseRoutes);
 app.use('/api/profiles', profileRoutes);
-app.use('/api/admin', adminRoutes);
 app.use('/api/ads', adRoutes);
-app.use('/api/admin/dashboard', dashboardRoutes);
 
 // 錯誤處理中間件
 app.use((err, req, res, next) => {

@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { isAuthenticated, isAdmin } = require('../middleware/auth');
-const User = require('../models/User');
-const Case = require('../models/Case');
-const Ad = require('../models/Ad');
+const User = require('../../models/User');
+const Case = require('../../models/Case');
+const Ad = require('../../models/Ad');
 
 // 獲取儀表板統計數據
 router.get('/', isAuthenticated, isAdmin, async (req, res) => {
