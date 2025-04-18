@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { adminAuth } = require('../middleware/auth');
-const { getStats, getDashboardStats } = require('../services/statsService');
+const { getStats, getDashboard } = require('../services/statsService');
 
 // Get all statistics (admin only)
 router.get('/', adminAuth, async (req, res) => {
@@ -16,7 +16,7 @@ router.get('/', adminAuth, async (req, res) => {
 // Get dashboard statistics (admin only)
 router.get('/dashboard', adminAuth, async (req, res) => {
   try {
-    const stats = await getDashboardStats();
+    const stats = await getDashboard();
     res.json(stats);
   } catch (error) {
     res.status(500).json({ message: error.message });

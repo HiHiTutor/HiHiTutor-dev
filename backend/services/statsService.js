@@ -91,7 +91,7 @@ const getStats = async () => {
   }
 };
 
-const getDashboardStats = async () => {
+const getDashboard = async () => {
   try {
     // User statistics
     const totalUsers = await User.countDocuments();
@@ -129,5 +129,5 @@ const getDashboardStats = async () => {
 
 module.exports = {
   getStats,
-  getDashboardStats
+  getDashboard
 }; 
