@@ -9,7 +9,7 @@ import {
   ChartBarIcon
 } from '@heroicons/react/24/outline';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import axiosInstance from '../../../services/axios';
+import axios from 'axios';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -25,10 +25,31 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await axiosInstance.get('/stats/dashboard');
+        const token = localStorage.getItem('adminToken');
+        if (!token) {
+          throw new Error('請先登入');
+        }
+
+        const response = await axios.get('https://hihitutor-dev-backend.onrender.com/api/stats/dashboard', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
         setStats(response.data);
+        setError('');
       } catch (err) {
-        setError(err.message || '無法載入統計數據');
+        if (err.response?.status === 401) {
+          setError('登入已過期，請重新登入');
+          // 清除 token 並重定向到登入頁面
+          localStorage.removeItem('adminToken');
+          localStorage.removeItem('adminUser');
+          window.location.href = '/admin/login';
+        } else if (err.response?.status === 404) {
+          setError('找不到統計數據');
+        } else {
+          setError(err.response?.data?.message || '無法載入統計數據，請稍後再試');
+        }
       } finally {
         setLoading(false);
       }
@@ -48,7 +69,17 @@ export default function AdminDashboard() {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-red-500">{error}</div>
+        <div className="text-red-500 text-center">
+          <p className="text-lg font-semibold">{error}</p>
+          {error === '登入已過期，請重新登入' && (
+            <button
+              onClick={() => window.location.href = '/admin/login'}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              前往登入
+            </button>
+          )}
+        </div>
       </div>
     );
   }
