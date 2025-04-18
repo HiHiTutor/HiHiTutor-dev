@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import axiosInstance from '../../services/axios';
+import axios from 'axios';
 
 export default function AdminLogin() {
   const [phone, setPhone] = useState('');
@@ -16,7 +16,7 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      const response = await axiosInstance.post('/users/adminLogin', {
+      const response = await axios.post('https://hihitutor-dev-backend.onrender.com/api/users/adminLogin', {
         phone,
         password,
       });
@@ -28,7 +28,7 @@ export default function AdminLogin() {
 
       router.push('/admin/dashboard');
     } catch (err) {
-      setError(err.message || '登入失敗，請檢查您的帳號密碼');
+      setError(err.response?.data?.message || '登入失敗，請檢查您的帳號密碼');
     } finally {
       setLoading(false);
     }
