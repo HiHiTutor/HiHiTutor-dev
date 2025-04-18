@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 創建 Axios 實例
 const axiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'https://hihitutor-dev-backend.onrender.com/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -18,7 +18,7 @@ const RETRY_DELAY = 1000; // 1 秒
 axiosInstance.interceptors.request.use(
   (config) => {
     // 從 localStorage 獲取 token
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    const token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
     
     // 如果有 token，添加到請求頭
     if (token) {
@@ -47,7 +47,8 @@ axiosInstance.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       // 如果在客戶端，清除 token 並重定向到登入頁面
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminUser');
         window.location.href = '/admin/login';
       }
       return Promise.reject({ message: '登入已過期，請重新登入' });

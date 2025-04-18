@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import api from '@/services/api';
+import { postAPI } from '@/services/api';
 
 const AdminPostList = () => {
   const router = useRouter();
@@ -19,10 +19,10 @@ const AdminPostList = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await api.get('/api/posts', { params: searchParams });
-      setPosts(response.data.posts);
+      const data = await postAPI.getPosts(searchParams);
+      setPosts(data.posts);
     } catch (err) {
-      setError(err.response?.data?.message || '獲取貼文列表失敗');
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -44,35 +44,34 @@ const AdminPostList = () => {
 
   const handleVerifyPost = async (postId, verified) => {
     try {
-      await api.patch(`/api/posts/${postId}/verify`, { verified });
+      await postAPI.updatePostVerification(postId, verified);
       fetchPosts();
     } catch (err) {
-      alert(err.response?.data?.message || '更新貼文狀態失敗');
+      alert(err.message);
     }
   };
 
   const handleUpdateStatus = async (postId, status) => {
     try {
-      await api.patch(`/api/posts/${postId}/verify`, { status });
+      await postAPI.updatePostStatus(postId, status);
       fetchPosts();
     } catch (err) {
-      alert(err.response?.data?.message || '更新貼文狀態失敗');
+      alert(err.message);
     }
   };
 
   const handleUpdateAdLevel = async (postId, adLevel) => {
     try {
-      await api.patch(`/api/posts/${postId}/verify`, { adLevel });
+      await postAPI.updatePostAdLevel(postId, adLevel);
       fetchPosts();
     } catch (err) {
-      alert(err.response?.data?.message || '更新廣告等級失敗');
+      alert(err.message);
     }
   };
 
   const handleViewPost = async (postId) => {
     try {
-      const response = await api.get(`/api/posts/${postId}`);
-      const post = response.data;
+      const post = await postAPI.getPost(postId);
       alert(`
 標題：${post.title}
 科目：${post.subjects.join(', ')}
@@ -84,7 +83,7 @@ const AdminPostList = () => {
 性別偏好：${post.genderPreference === 'any' ? '不限' : post.genderPreference === 'male' ? '男' : '女'}
       `);
     } catch (err) {
-      alert(err.response?.data?.message || '獲取貼文詳情失敗');
+      alert(err.message);
     }
   };
 

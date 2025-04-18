@@ -9,7 +9,7 @@ import {
   ChartBarIcon
 } from '@heroicons/react/24/outline';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import axios from 'axios';
+import { statsAPI } from '@/services/api';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -20,36 +20,17 @@ export default function AdminDashboard() {
     latestCases: []
   });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const token = localStorage.getItem('adminToken');
-        if (!token) {
-          throw new Error('請先登入');
-        }
-
-        const response = await axios.get('https://hihitutor-dev-backend.onrender.com/api/stats/dashboard', {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-
-        setStats(response.data);
-        setError('');
+        setLoading(true);
+        const data = await statsAPI.getStats();
+        setStats(data);
+        setError(null);
       } catch (err) {
-        if (err.response?.status === 401) {
-          setError('登入已過期，請重新登入');
-          // 清除 token 並重定向到登入頁面
-          localStorage.removeItem('adminToken');
-          localStorage.removeItem('adminUser');
-          window.location.href = '/admin/login';
-        } else if (err.response?.status === 404) {
-          setError('找不到統計數據');
-        } else {
-          setError(err.response?.data?.message || '無法載入統計數據，請稍後再試');
-        }
+        setError(err.message);
       } finally {
         setLoading(false);
       }
