@@ -22,8 +22,8 @@ export const adAPI = {
 };
 
 export const statsAPI = {
-  getDashboard: () => axiosInstance.get('/api/admin/stats'),
-  getStats: () => axiosInstance.get('/api/admin/stats')
+  getDashboard: () => axiosInstance.get('/api/admin/dashboard'),
+  getStats: () => axiosInstance.get('/api/admin/dashboard')
 };
 
 export const authAPI = {

@@ -12,6 +12,7 @@ const caseRoutes = require('./src/routes/caseRoutes');
 const profileRoutes = require('./src/routes/profileRoutes');
 const adminRoutes = require('./src/routes/adminRoutes');
 const adRoutes = require('./src/routes/adRoutes');
+const dashboardRoutes = require('./src/routes/dashboardRoutes');
 
 const app = express();
 
@@ -54,6 +55,7 @@ app.use('/api/cases', caseRoutes);
 app.use('/api/profiles', profileRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/ads', adRoutes);
+app.use('/api/admin/dashboard', dashboardRoutes);
 
 // 錯誤處理中間件
 app.use((err, req, res, next) => {
