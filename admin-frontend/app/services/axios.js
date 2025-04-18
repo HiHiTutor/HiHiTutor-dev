@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: 'https://hihitutor-dev-backend.onrender.com/api/admin',
+  baseURL: 'https://hihitutor-dev-backend.onrender.com',
   timeout: 10000,
   validateStatus: function (status) {
     return status >= 200 && status < 300;

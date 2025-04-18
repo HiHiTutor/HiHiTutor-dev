@@ -1,33 +1,33 @@
 import axiosInstance from './axios';
 
 export const userAPI = {
-  getAll: () => axiosInstance.get('/users'),
-  getOne: (id) => axiosInstance.get(`/users/${id}`),
-  update: (id, data) => axiosInstance.patch(`/users/${id}`, data),
-  delete: (id) => axiosInstance.delete(`/users/${id}`)
+  getAll: () => axiosInstance.get('/api/admin/users'),
+  getOne: (id) => axiosInstance.get(`/api/admin/users/${id}`),
+  update: (id, data) => axiosInstance.patch(`/api/admin/users/${id}`, data),
+  delete: (id) => axiosInstance.delete(`/api/admin/users/${id}`)
 };
 
 export const caseAPI = {
-  getAll: () => axiosInstance.get('/cases'),
-  getOne: (id) => axiosInstance.get(`/cases/${id}`),
-  update: (id, data) => axiosInstance.patch(`/cases/${id}`, data),
-  delete: (id) => axiosInstance.delete(`/cases/${id}`)
+  getAll: () => axiosInstance.get('/api/admin/cases'),
+  getOne: (id) => axiosInstance.get(`/api/admin/cases/${id}`),
+  update: (id, data) => axiosInstance.patch(`/api/admin/cases/${id}`, data),
+  delete: (id) => axiosInstance.delete(`/api/admin/cases/${id}`)
 };
 
 export const adAPI = {
-  getAll: () => axiosInstance.get('/advertisements'),
-  create: (data) => axiosInstance.post('/advertisements', data),
-  update: (id, data) => axiosInstance.patch(`/advertisements/${id}`, data),
-  delete: (id) => axiosInstance.delete(`/advertisements/${id}`)
+  getAll: () => axiosInstance.get('/api/admin/advertisements'),
+  create: (data) => axiosInstance.post('/api/admin/advertisements', data),
+  update: (id, data) => axiosInstance.patch(`/api/admin/advertisements/${id}`, data),
+  delete: (id) => axiosInstance.delete(`/api/admin/advertisements/${id}`)
 };
 
 export const statsAPI = {
-  getDashboard: () => axiosInstance.get('/stats/dashboard'),
-  getStats: () => axiosInstance.get('/stats')
+  getDashboard: () => axiosInstance.get('/api/admin/stats/dashboard'),
+  getStats: () => axiosInstance.get('/api/admin/stats')
 };
 
 export const authAPI = {
-  login: (data) => axiosInstance.post('/auth/login', data),
-  logout: () => axiosInstance.post('/auth/logout'),
-  getProfile: () => axiosInstance.get('/auth/profile')
+  login: (data) => axiosInstance.post('/api/admin/auth/login', data),
+  logout: () => axiosInstance.post('/api/admin/auth/logout'),
+  getProfile: () => axiosInstance.get('/api/admin/auth/profile')
 }; 
