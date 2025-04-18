@@ -15,10 +15,10 @@ export const caseAPI = {
 };
 
 export const adAPI = {
-  getAds: () => axiosInstance.get('/advertisements'),
-  createAd: (data) => axiosInstance.post('/advertisements', data),
-  updateAd: (id, data) => axiosInstance.patch(`/advertisements/${id}`, data),
-  deleteAd: (id) => axiosInstance.delete(`/advertisements/${id}`)
+  getAds: () => axiosInstance.get('/ads'),
+  createAd: (data) => axiosInstance.post('/ads', data),
+  updateAd: (id, data) => axiosInstance.patch(`/ads/${id}`, data),
+  deleteAd: (id) => axiosInstance.delete(`/ads/${id}`)
 };
 
 export const statsAPI = {
@@ -27,7 +27,7 @@ export const statsAPI = {
 };
 
 export const authAPI = {
-  login: (data) => axiosInstance.post('/auth/login', data),
+  login: (data) => axiosInstance.post('/users/adminLogin', data),
   logout: () => axiosInstance.post('/auth/logout'),
   getProfile: () => axiosInstance.get('/auth/profile')
 }; 
