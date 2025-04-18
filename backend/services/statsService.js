@@ -91,6 +91,43 @@ const getStats = async () => {
   }
 };
 
+const getDashboardStats = async () => {
+  try {
+    // User statistics
+    const totalUsers = await User.countDocuments();
+    const totalStudents = await User.countDocuments({ role: 'student' });
+    const totalTutors = await User.countDocuments({ role: 'tutor' });
+
+    // Case statistics
+    const pendingCases = await Case.countDocuments({ status: 'pending' });
+
+    // Get latest cases
+    const latestCases = await Case.find({})
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate('student', 'name')
+      .select('_id title status createdAt');
+
+    return {
+      totalUsers,
+      totalStudents,
+      totalTutors,
+      pendingCases,
+      latestCases: latestCases.map(caseItem => ({
+        _id: caseItem._id,
+        title: caseItem.title,
+        studentName: caseItem.student.name,
+        status: caseItem.status,
+        createdAt: caseItem.createdAt
+      }))
+    };
+  } catch (error) {
+    console.error('Error getting dashboard statistics:', error);
+    throw error;
+  }
+};
+
 module.exports = {
-  getStats
+  getStats,
+  getDashboardStats
 }; 

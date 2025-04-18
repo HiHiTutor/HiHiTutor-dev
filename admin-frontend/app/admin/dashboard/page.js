@@ -9,23 +9,26 @@ import {
   ChartBarIcon
 } from '@heroicons/react/24/outline';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { statsAPI } from '@/services/api';
+import axiosInstance from '../../../services/axios';
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalStudents: 0,
+    totalTutors: 0,
+    pendingCases: 0,
+    latestCases: []
+  });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        setLoading(true);
-        setError(null);
-        const data = await statsAPI.getStats();
-        setStats(data);
+        const response = await axiosInstance.get('/stats/dashboard');
+        setStats(response.data);
       } catch (err) {
-        console.error('Error fetching stats:', err);
-        setError(err.message || '獲取數據時發生錯誤');
+        setError(err.message || '無法載入統計數據');
       } finally {
         setLoading(false);
       }
@@ -36,7 +39,7 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
@@ -44,19 +47,8 @@ export default function AdminDashboard() {
 
   if (error) {
     return (
-      <div className="p-6">
-        <div className="bg-red-50 border-l-4 border-red-500 p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-red-700">{error}</p>
-            </div>
-          </div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-red-500">{error}</div>
       </div>
     );
   }
@@ -85,7 +77,7 @@ export default function AdminDashboard() {
                   </dt>
                   <dd className="flex items-baseline">
                     <div className="text-2xl font-semibold text-gray-900">
-                      {stats?.totalUsers || 0}
+                      {stats.totalUsers}
                     </div>
                   </dd>
                 </dl>
@@ -115,7 +107,7 @@ export default function AdminDashboard() {
                   </dt>
                   <dd className="flex items-baseline">
                     <div className="text-2xl font-semibold text-gray-900">
-                      {stats?.totalStudents || 0}
+                      {stats.totalStudents}
                     </div>
                   </dd>
                 </dl>
@@ -145,7 +137,7 @@ export default function AdminDashboard() {
                   </dt>
                   <dd className="flex items-baseline">
                     <div className="text-2xl font-semibold text-gray-900">
-                      {stats?.totalTutors || 0}
+                      {stats.totalTutors}
                     </div>
                   </dd>
                 </dl>
@@ -161,7 +153,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* 廣告數量 */}
+        {/* 待處理案件 */}
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
             <div className="flex items-center">
@@ -171,11 +163,11 @@ export default function AdminDashboard() {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">
-                    廣告數量
+                    待處理案件
                   </dt>
                   <dd className="flex items-baseline">
                     <div className="text-2xl font-semibold text-gray-900">
-                      {stats?.totalAds || 0}
+                      {stats.pendingCases}
                     </div>
                   </dd>
                 </dl>
@@ -184,11 +176,50 @@ export default function AdminDashboard() {
           </div>
           <div className="bg-gray-50 px-5 py-3">
             <div className="text-sm">
-              <a href="/admin/ads" className="font-medium text-blue-600 hover:text-blue-500">
-                查看所有廣告
+              <a href="/admin/cases" className="font-medium text-blue-600 hover:text-blue-500">
+                查看所有案件
               </a>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* 最新案件 */}
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <h2 className="text-xl font-bold mb-4">最新案件</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">案件編號</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">標題</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">學生</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">狀態</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">建立時間</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {stats.latestCases.map((caseItem) => (
+                <tr key={caseItem._id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{caseItem._id}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{caseItem.title}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{caseItem.studentName}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      caseItem.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      caseItem.status === 'approved' ? 'bg-green-100 text-green-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {caseItem.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {new Date(caseItem.createdAt).toLocaleString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
