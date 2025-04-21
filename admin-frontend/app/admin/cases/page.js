@@ -7,30 +7,30 @@ export default function AdminCaseList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchCases = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await caseAPI.getAll();
-        setCases(data);
-      } catch (err) {
-        console.error('獲取個案列表失敗:', err);
-        setError(err.response?.data?.message || err.message || '獲取個案列表失敗');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchCases = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await caseAPI.getAll();
+      setCases(response.data);
+    } catch (err) {
+      console.error('獲取個案列表失敗:', err);
+      setError(err.response?.data?.message || err.message || '獲取個案列表失敗');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchCases();
   }, []);
 
   // 更新個案狀態（審核）
   const handleVerifyCase = async (caseId) => {
     try {
-      await caseAPI.updateCaseStatus(caseId, { verified: true });
+      await caseAPI.update(caseId, { verified: true });
       // 重新獲取個案列表
-      fetchCases();
+      await fetchCases();
       alert('個案審核成功');
     } catch (err) {
       console.error('審核個案失敗:', err);
@@ -41,9 +41,9 @@ export default function AdminCaseList() {
   // 查看個案詳情
   const handleViewCase = async (caseId) => {
     try {
-      const caseData = await caseAPI.getCase(caseId);
+      const response = await caseAPI.getOne(caseId);
       // 這裡可以顯示個案詳情，例如使用模態框
-      alert(`個案詳情: ${JSON.stringify(caseData, null, 2)}`);
+      alert(`個案詳情: ${JSON.stringify(response.data, null, 2)}`);
     } catch (err) {
       console.error('獲取個案詳情失敗:', err);
       alert(err.response?.data?.message || err.message || '獲取個案詳情失敗');
