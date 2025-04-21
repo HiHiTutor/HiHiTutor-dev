@@ -12,8 +12,11 @@ export default function AdminCaseList() {
       setLoading(true);
       setError(null);
       const response = await caseAPI.getAll();
-      // 確保 response 是數組
-      setCases(Array.isArray(response.data) ? response.data : []);
+      if (response && response.data) {
+        setCases(Array.isArray(response.data) ? response.data : []);
+      } else {
+        setCases([]);
+      }
     } catch (err) {
       console.error('獲取個案列表失敗:', err);
       setError(err.response?.data?.message || err.message || '獲取個案列表失敗');
@@ -30,7 +33,6 @@ export default function AdminCaseList() {
   const handleVerifyCase = async (caseId) => {
     try {
       await caseAPI.update(caseId, { verified: true });
-      // 重新獲取個案列表
       await fetchCases();
       alert('個案審核成功');
     } catch (err) {
@@ -43,8 +45,11 @@ export default function AdminCaseList() {
   const handleViewCase = async (caseId) => {
     try {
       const response = await caseAPI.getOne(caseId);
-      // 這裡可以顯示個案詳情，例如使用模態框
-      alert(`個案詳情: ${JSON.stringify(response.data, null, 2)}`);
+      if (response && response.data) {
+        alert(`個案詳情: ${JSON.stringify(response.data, null, 2)}`);
+      } else {
+        alert('無法獲取個案詳情');
+      }
     } catch (err) {
       console.error('獲取個案詳情失敗:', err);
       alert(err.response?.data?.message || err.message || '獲取個案詳情失敗');
