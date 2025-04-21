@@ -52,11 +52,12 @@ export default function StatsPage() {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        const data = await statsAPI.getStats();
-        setStats(data);
         setError(null);
+        const data = await statsAPI.getDashboard();
+        setStats(data);
       } catch (err) {
-        setError(err.message || '獲取統計數據失敗');
+        console.error('獲取統計數據失敗:', err);
+        setError(err.response?.data?.message || err.message || '獲取統計數據失敗');
       } finally {
         setLoading(false);
       }

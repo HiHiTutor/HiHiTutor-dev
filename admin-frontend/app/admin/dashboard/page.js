@@ -21,7 +21,7 @@ export default function DashboardPage() {
       try {
         setLoading(true);
         setError(null);
-        const data = await statsAPI.getDashboardStats();
+        const data = await statsAPI.getDashboard();
         setStats(data);
       } catch (err) {
         console.error('獲取統計數據失敗:', err);

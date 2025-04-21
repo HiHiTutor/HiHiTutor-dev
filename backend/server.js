@@ -13,6 +13,7 @@ const profileRoutes = require('./src/routes/profileRoutes');
 const adminRoutes = require('./src/routes/adminRoutes');
 const adRoutes = require('./src/routes/adRoutes');
 const dashboardRoutes = require('./src/routes/dashboardRoutes');
+const advertisementRoutes = require('./src/routes/advertisementRoutes');
 
 const app = express();
 
@@ -50,6 +51,7 @@ app.get('/', (req, res) => {
 
 // 使用路由
 app.use('/api/admin/dashboard', dashboardRoutes);  // 更具體的路徑先匹配
+app.use('/api/admin/advertisements', advertisementRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/sms', smsRoutes);

@@ -17,21 +17,21 @@ const AdminAdsPage = () => {
     advertiser: ''
   });
 
-  const fetchAds = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await adAPI.getAds();
-      setAds(data);
-    } catch (err) {
-      console.error('獲取廣告列表失敗:', err);
-      setError(err.response?.data?.message || err.message || '獲取廣告列表失敗');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchAds = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await adAPI.getAll();
+        setAds(data);
+      } catch (err) {
+        console.error('獲取廣告列表失敗:', err);
+        setError(err.response?.data?.message || err.message || '獲取廣告列表失敗');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchAds();
   }, []);
 

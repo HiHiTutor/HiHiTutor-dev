@@ -7,20 +7,23 @@ export default function AdminUserList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 獲取用戶列表
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await userAPI.getUsers();
-      setUsers(data);
-    } catch (err) {
-      console.error('獲取用戶列表失敗:', err);
-      setError(err.message || '獲取用戶列表失敗');
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await userAPI.getAll();
+        setUsers(data);
+      } catch (err) {
+        console.error('獲取用戶列表失敗:', err);
+        setError(err.response?.data?.message || err.message || '獲取用戶列表失敗');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   // 更新用戶狀態（審核）
   const handleVerifyUser = async (userId) => {
@@ -31,7 +34,7 @@ export default function AdminUserList() {
       alert('用戶審核成功');
     } catch (err) {
       console.error('審核用戶失敗:', err);
-      alert(err.message || '審核用戶失敗');
+      alert(err.response?.data?.message || err.message || '審核用戶失敗');
     }
   };
 
@@ -43,73 +46,90 @@ export default function AdminUserList() {
       alert(`用戶詳情: ${JSON.stringify(user, null, 2)}`);
     } catch (err) {
       console.error('獲取用戶詳情失敗:', err);
-      alert(err.message || '獲取用戶詳情失敗');
+      alert(err.response?.data?.message || err.message || '獲取用戶詳情失敗');
     }
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
   if (loading) {
-    return <div style={{ padding: 30 }}>載入中...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div style={{ padding: 30, color: 'red' }}>
-        錯誤: {error}
-        <button 
-          onClick={fetchUsers}
-          style={{ marginLeft: 10, padding: '5px 10px' }}
-        >
-          重試
-        </button>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-red-500 text-center">
+          <p className="text-lg font-semibold">{error}</p>
+          <button
+            onClick={fetchUsers}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            重試
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: 30 }}>
-      <h2>用戶管理</h2>
-      <table border="1" cellPadding="10" cellSpacing="0" style={{ width: '100%', marginTop: 20 }}>
-        <thead>
-          <tr>
-            <th>用戶名稱</th>
-            <th>電話號碼</th>
-            <th>身份</th>
-            <th>是否審核</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.length > 0 ? (
-            users.map(user => (
-              <tr key={user.id}>
-                <td>{user.name}</td>
-                <td>{user.phone}</td>
-                <td>{user.role}</td>
-                <td>{user.verified ? '已審核' : '待審核'}</td>
-                <td>
-                  <button onClick={() => handleViewUser(user.id)}>查看</button>
-                  {!user.verified && (
-                    <button 
-                      style={{ marginLeft: 10 }} 
-                      onClick={() => handleVerifyUser(user.id)}
+    <div className="container mx-auto px-4 py-8">
+      <h2 className="text-2xl font-bold mb-6">用戶管理</h2>
+      <div className="bg-white shadow-md rounded-lg overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用戶名稱</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">電話號碼</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">身份</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">是否審核</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {users.length > 0 ? (
+              users.map(user => (
+                <tr key={user.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.phone}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.role}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      user.verified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {user.verified ? '已審核' : '待審核'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <button
+                      onClick={() => handleViewUser(user.id)}
+                      className="text-blue-600 hover:text-blue-900 mr-4"
                     >
-                      通過審核
+                      查看
                     </button>
-                  )}
+                    {!user.verified && (
+                      <button
+                        onClick={() => handleVerifyUser(user.id)}
+                        className="text-green-600 hover:text-green-900"
+                      >
+                        通過審核
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5" className="px-6 py-4 text-center text-sm text-gray-500">
+                  暫無用戶數據
                 </td>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="5" style={{ textAlign: 'center' }}>暫無用戶數據</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
