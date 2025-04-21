@@ -8,10 +8,10 @@ export const userAPI = {
 };
 
 export const caseAPI = {
-  getAll: () => axiosInstance.get('/api/admin/cases'),
-  getOne: (id) => axiosInstance.get(`/api/admin/cases/${id}`),
-  update: (id, data) => axiosInstance.patch(`/api/admin/cases/${id}`, data),
-  delete: (id) => axiosInstance.delete(`/api/admin/cases/${id}`)
+  getAll: () => axiosInstance.get('/api/cases/admin/cases'),
+  getOne: (id) => axiosInstance.get(`/api/cases/admin/cases/${id}`),
+  update: (id, data) => axiosInstance.patch(`/api/cases/${id}/verify`, data),
+  delete: (id) => axiosInstance.delete(`/api/cases/${id}`)
 };
 
 export const adAPI = {

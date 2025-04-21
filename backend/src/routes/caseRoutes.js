@@ -279,4 +279,33 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
+// Admin: Get all cases
+router.get('/admin/cases', adminAuth, async (req, res) => {
+  try {
+    const match = {};
+    const sort = {};
+
+    if (req.query.status) {
+      match.status = req.query.status;
+    }
+    if (req.query.verified !== undefined) {
+      match.verified = req.query.verified === 'true';
+    }
+    if (req.query.sortBy) {
+      const parts = req.query.sortBy.split(':');
+      sort[parts[0]] = parts[1] === 'desc' ? -1 : 1;
+    }
+
+    const cases = await Case.find(match)
+      .populate('student', 'name email')
+      .sort(sort || { createdAt: -1 })
+      .limit(parseInt(req.query.limit) || 10)
+      .skip(parseInt(req.query.skip) || 0);
+
+    res.json(cases);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 module.exports = router; 

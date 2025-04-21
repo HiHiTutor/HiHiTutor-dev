@@ -12,7 +12,8 @@ export default function AdminCaseList() {
       setLoading(true);
       setError(null);
       const response = await caseAPI.getAll();
-      setCases(response.data);
+      // 確保 response 是數組
+      setCases(Array.isArray(response.data) ? response.data : []);
     } catch (err) {
       console.error('獲取個案列表失敗:', err);
       setError(err.response?.data?.message || err.message || '獲取個案列表失敗');
@@ -91,7 +92,7 @@ export default function AdminCaseList() {
           <tbody className="bg-white divide-y divide-gray-200">
             {cases.length > 0 ? (
               cases.map(cs => (
-                <tr key={cs.id}>
+                <tr key={cs._id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{cs.title}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{cs.type}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{cs.fee}</td>
@@ -104,14 +105,14 @@ export default function AdminCaseList() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <button
-                      onClick={() => handleViewCase(cs.id)}
+                      onClick={() => handleViewCase(cs._id)}
                       className="text-blue-600 hover:text-blue-900 mr-4"
                     >
                       查看
                     </button>
                     {!cs.verified && (
                       <button
-                        onClick={() => handleVerifyCase(cs.id)}
+                        onClick={() => handleVerifyCase(cs._id)}
                         className="text-green-600 hover:text-green-900"
                       >
                         通過審核
