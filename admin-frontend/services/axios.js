@@ -5,8 +5,7 @@ const instance = axios.create({
   baseURL: 'https://hihitutor-dev-backend.onrender.com',
   timeout: 10000,
   headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${localStorage.getItem('token') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODAxMWY5ZjQ5YzM0YzQ0YzM0YzQ0YzM0Iiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzEzNjQwMDAwLCJleHAiOjE3MTQyNDQ4MDB9.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'}`
+    'Content-Type': 'application/json'
   }
 });
 
@@ -17,9 +16,11 @@ const RETRY_DELAY = 1000; // 1 秒
 // 請求攔截器
 instance.interceptors.request.use(
   config => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
@@ -38,8 +39,10 @@ instance.interceptors.response.use(
       switch (error.response.status) {
         case 401:
           // 未授權，清除 token 並跳轉到登入頁
-          localStorage.removeItem('token');
-          window.location.href = '/login';
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+          }
           break;
         case 403:
           console.error('權限不足');
