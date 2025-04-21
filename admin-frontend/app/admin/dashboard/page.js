@@ -1,18 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { 
-  UsersIcon, 
-  AcademicCapIcon, 
-  BriefcaseIcon, 
-  NewspaperIcon,
-  ChartBarIcon
-} from '@heroicons/react/24/outline';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { statsAPI } from '@/services/api';
+import { useState, useEffect } from 'react';
+import axios from '@/services/axios';
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalTutors: 0,
+    totalCases: 0,
+    totalApplications: 0
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -20,12 +17,10 @@ export default function DashboardPage() {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        setError(null);
-        const data = await statsAPI.getDashboard();
-        setStats(data);
+        const response = await axios.get('/api/admin/dashboard');
+        setStats(response.data);
       } catch (err) {
-        console.error('獲取統計數據失敗:', err);
-        setError(err.response?.data?.message || err.message || '獲取統計數據失敗');
+        setError(err.response?.data?.message || '無法載入統計資料');
       } finally {
         setLoading(false);
       }
@@ -36,47 +31,39 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-red-500 text-center">
-          <p className="text-lg font-semibold">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            重試
-          </button>
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-red-500">{error}</div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">儀表板</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-lg font-semibold mb-2">總用戶數</h2>
-          <p className="text-3xl font-bold">{stats?.totalUsers || 0}</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold text-gray-600">總用戶數</h3>
+          <p className="text-3xl font-bold mt-2">{stats.totalUsers}</p>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-lg font-semibold mb-2">總個案數</h2>
-          <p className="text-3xl font-bold">{stats?.totalCases || 0}</p>
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold text-gray-600">總導師數</h3>
+          <p className="text-3xl font-bold mt-2">{stats.totalTutors}</p>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-lg font-semibold mb-2">總廣告數</h2>
-          <p className="text-3xl font-bold">{stats?.totalAds || 0}</p>
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold text-gray-600">總案件數</h3>
+          <p className="text-3xl font-bold mt-2">{stats.totalCases}</p>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-lg font-semibold mb-2">總點擊數</h2>
-          <p className="text-3xl font-bold">{stats?.totalClicks || 0}</p>
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold text-gray-600">總申請數</h3>
+          <p className="text-3xl font-bold mt-2">{stats.totalApplications}</p>
         </div>
       </div>
     </div>
