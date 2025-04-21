@@ -3,90 +3,50 @@ const mongoose = require('mongoose');
 const caseSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: true
-  },
-  description: {
-    type: String,
-    required: true
+    required: true,
+    trim: true
   },
   subject: {
     type: String,
-    required: true
-  },
-  grade: {
-    type: String,
-    required: true
+    required: true,
+    trim: true
   },
   location: {
     type: String,
-    required: true
+    required: true,
+    trim: true
   },
-  salary: {
+  fee: {
     type: Number,
-    required: true
+    required: true,
+    min: 0
   },
-  requirements: [String],
-  status: {
+  requirements: {
     type: String,
-    enum: ['pending', 'approved', 'rejected', 'completed'],
-    default: 'pending'
+    required: true,
+    trim: true
   },
-  createdBy: {
+  schedule: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  contact: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  student: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
   },
-  applications: [{
-    tutor: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    },
-    status: {
-      type: String,
-      enum: ['pending', 'accepted', 'rejected'],
-      default: 'pending'
-    },
-    message: String,
-    appliedAt: {
-      type: Date,
-      default: Date.now
-    }
-  }],
-  selectedTutor: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
-  },
-  subscription: {
-    type: String,
-    enum: ['active', 'cancelled', 'expired'],
-    default: 'active'
-  },
-  paymentId: {
-    type: String,
-    required: true
-  },
-  autoRenew: {
+  verified: {
     type: Boolean,
-    default: true
-  },
-  startDate: {
-    type: Date,
-    default: Date.now
+    default: false
   }
-});
-
-// 更新 updatedAt 時間戳
-caseSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
+}, {
+  timestamps: true
 });
 
 module.exports = mongoose.model('Case', caseSchema); 

@@ -1,190 +1,119 @@
 const express = require('express');
 const router = express.Router();
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
-const { isAuthenticated } = require('../middleware/auth');
 const User = require('../models/User');
+const auth = require('../middleware/auth');
+const Subscription = require('../models/Subscription');
 
-// 測試路由
-router.get('/test', (req, res) => {
-  res.json({ message: '用戶路由測試成功' });
-});
-
-// 註冊
-router.post('/register', async (req, res) => {
+// Get current user profile
+router.get('/profile', auth, async (req, res) => {
   try {
-    const { phone, password, name, email } = req.body;
-
-    // 檢查手機號是否已註冊
-    const existingUser = await User.findOne({ phone });
-    if (existingUser) {
-      return res.status(400).json({ message: '此手機號已註冊' });
-    }
-
-    const user = new User({
-      phone,
-      password,
-      name,
-      email
+    const user = await User.findById(req.user.id).select('-password');
+    const subscription = await Subscription.findOne({
+      user: req.user.id,
+      status: 'active'
     });
-
-    await user.save();
-
-    // 生成 JWT
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    res.status(201).json({
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        phone: user.phone,
-        role: user.role
-      }
-    });
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
-
-// 登入
-router.post('/login', async (req, res) => {
-  try {
-    const { phone, password } = req.body;
-
-    const user = await User.findOne({ phone });
-    if (!user) {
-      return res.status(401).json({ message: '用戶不存在' });
-    }
-
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return res.status(401).json({ message: '密碼錯誤' });
-    }
-
-    // 更新最後登入時間
-    user.lastLogin = new Date();
-    await user.save();
-
-    // 生成 JWT
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
+    
     res.json({
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        phone: user.phone,
-        role: user.role
-      }
+      ...user.toObject(),
+      subscription: subscription ? {
+        planId: subscription.planId,
+        status: subscription.status,
+        endDate: subscription.endDate
+      } : null
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ error: error.message });
   }
 });
 
-// 管理員登入
-router.post('/adminLogin', async (req, res) => {
-  try {
-    const { phone, password } = req.body;
+// Update user profile
+router.patch('/profile', auth, async (req, res) => {
+  const updates = Object.keys(req.body);
+  const allowedUpdates = ['name', 'email', 'phone', 'location', 'bio'];
+  const isValidOperation = updates.every(update => allowedUpdates.includes(update));
 
-    const user = await User.findOne({ phone });
-    if (!user || user.role !== 'admin') {
-      return res.status(401).json({ message: '無效的管理員帳號' });
-    }
-
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return res.status(401).json({ message: '密碼錯誤' });
-    }
-
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    res.json({
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        phone: user.phone,
-        role: user.role
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  if (!isValidOperation) {
+    return res.status(400).json({ error: 'Invalid updates' });
   }
-});
 
-// 獲取當前用戶資料
-router.get('/me', isAuthenticated, async (req, res) => {
   try {
-    const user = await User.findById(req.user._id)
-      .select('-password')
-      .populate('tutorProfile');
+    const user = await User.findById(req.user.id);
+    updates.forEach(update => user[update] = req.body[update]);
+    await user.save();
     res.json(user);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(400).json({ error: error.message });
   }
 });
 
-// 忘記密碼
-router.post('/forgot-password', async (req, res) => {
+// Get user's ads
+router.get('/ads', auth, async (req, res) => {
   try {
-    const { phone } = req.body;
-    const user = await User.findOne({ phone });
-    
-    if (!user) {
-      return res.status(404).json({ message: '用戶不存在' });
-    }
-
-    // 生成重置令牌
-    const resetToken = crypto.randomBytes(20).toString('hex');
-    user.resetPasswordToken = resetToken;
-    user.resetPasswordExpires = Date.now() + 3600000; // 1小時有效期
-    await user.save();
-
-    // TODO: 發送重置密碼簡訊
-    // 這裡需要整合簡訊服務
-
-    res.json({ message: '重置密碼連結已發送到您的手機' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// 重設密碼
-router.post('/reset-password', async (req, res) => {
-  try {
-    const { token, newPassword } = req.body;
-
-    const user = await User.findOne({
-      resetPasswordToken: token,
-      resetPasswordExpires: { $gt: Date.now() }
+    const subscription = await Subscription.findOne({
+      user: req.user.id,
+      status: 'active'
     });
 
-    if (!user) {
-      return res.status(400).json({ message: '無效或過期的重置令牌' });
+    const ads = await Ad.find({ user: req.user.id });
+    
+    if (!subscription && ads.length >= 3) {
+      return res.status(403).json({
+        error: 'Free plan limit reached. Please upgrade to post more ads.',
+        upgradeRequired: true
+      });
     }
 
-    user.password = newPassword;
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpires = undefined;
-    await user.save();
+    if (subscription && ads.length >= subscription.features.maxAds) {
+      return res.status(403).json({
+        error: 'Plan limit reached. Please upgrade to post more ads.',
+        upgradeRequired: true
+      });
+    }
 
-    res.json({ message: '密碼已成功重設' });
+    res.json(ads);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get user's applications
+router.get('/applications', auth, async (req, res) => {
+  try {
+    const subscription = await Subscription.findOne({
+      user: req.user.id,
+      status: 'active'
+    });
+
+    const applications = await Application.find({ tutor: req.user.id });
+    
+    if (!subscription && applications.length >= 5) {
+      return res.status(403).json({
+        error: 'Free plan limit reached. Please upgrade to apply for more cases.',
+        upgradeRequired: true
+      });
+    }
+
+    if (subscription && applications.length >= subscription.features.maxApplications) {
+      return res.status(403).json({
+        error: 'Plan limit reached. Please upgrade to apply for more cases.',
+        upgradeRequired: true
+      });
+    }
+
+    res.json(applications);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete user account
+router.delete('/account', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    await user.remove();
+    res.json({ message: 'Account deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 

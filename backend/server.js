@@ -14,6 +14,14 @@ const adminRoutes = require('./src/routes/adminRoutes');
 const adRoutes = require('./src/routes/adRoutes');
 const dashboardRoutes = require('./src/routes/dashboardRoutes');
 const advertisementRoutes = require('./src/routes/advertisementRoutes');
+const statsRoutes = require('./src/routes/statsRoutes');
+const applicationRoutes = require('./src/routes/applicationRoutes');
+const subscriptionRoutes = require('./src/routes/subscriptionRoutes');
+const webhookRoutes = require('./src/routes/webhookRoutes');
+const paymentRoutes = require('./src/routes/paymentRoutes');
+const verificationRoutes = require('./src/routes/verificationRoutes');
+const notificationRoutes = require('./src/routes/notificationRoutes');
+const postRoutes = require('./src/routes/postRoutes');
 
 const app = express();
 
@@ -50,14 +58,22 @@ app.get('/', (req, res) => {
 });
 
 // 使用路由
-app.use('/api/admin/dashboard', dashboardRoutes);  // 更具體的路徑先匹配
+app.use('/api/admin/dashboard', dashboardRoutes);
 app.use('/api/admin/advertisements', advertisementRoutes);
+app.use('/api/admin/stats', statsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/sms', smsRoutes);
 app.use('/api/cases', caseRoutes);
 app.use('/api/profiles', profileRoutes);
 app.use('/api/ads', adRoutes);
+app.use('/api/applications', applicationRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/webhooks', webhookRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/verifications', verificationRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/posts', postRoutes);
 
 // 錯誤處理中間件
 app.use((err, req, res, next) => {

@@ -1,60 +1,133 @@
-const User = require('../../models/User');
-const Case = require('../../models/Case');
-const Advertisement = require('../../models/Advertisement');
+const User = require('../models/User');
+const Case = require('../models/Case');
+const Application = require('../models/Application');
+const Advertisement = require('../models/Advertisement');
 
-async function getDashboardStats() {
+const getStats = async () => {
   try {
-    // 獲取用戶統計
+    // User statistics
     const totalUsers = await User.countDocuments();
-    const totalTutors = await User.countDocuments({ role: 'tutor' });
     const totalStudents = await User.countDocuments({ role: 'student' });
-    const verifiedTutors = await User.countDocuments({ role: 'tutor', isVerified: true });
+    const totalTutors = await User.countDocuments({ role: 'tutor' });
+    const verifiedTutors = await User.countDocuments({ role: 'tutor', verified: true });
 
-    // 獲取案例統計
+    // Case statistics
     const totalCases = await Case.countDocuments();
-    const pendingCases = await Case.countDocuments({ status: 'pending' });
-    const activeCases = await Case.countDocuments({ status: 'active' });
+    const verifiedCases = await Case.countDocuments({ verified: true });
+    const activeCases = await Case.countDocuments({
+      verified: true,
+      endDate: { $gte: new Date() }
+    });
 
-    // 獲取廣告統計
+    // Application statistics
+    const totalApplications = await Application.countDocuments();
+    const approvedApplications = await Application.countDocuments({ status: 'approved' });
+    const pendingApplications = await Application.countDocuments({ status: 'pending' });
+
+    // Advertisement statistics
     const totalAds = await Advertisement.countDocuments();
-    const activeAds = await Advertisement.countDocuments({ status: 'active' });
+    const activeAds = await Advertisement.countDocuments({ active: true });
+    const totalClicks = await Advertisement.aggregate([
+      { $group: { _id: null, total: { $sum: '$clicks' } } }
+    ]);
 
-    // 獲取最近的案例
-    const recentCases = await Case.find()
-      .sort({ createdAt: -1 })
-      .limit(5)
-      .populate('createdBy', 'name');
+    // Monthly statistics
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+    const monthlyStats = {
+      newUsers: await User.countDocuments({
+        createdAt: { $gte: firstDayOfMonth, $lte: lastDayOfMonth }
+      }),
+      newCases: await Case.countDocuments({
+        createdAt: { $gte: firstDayOfMonth, $lte: lastDayOfMonth }
+      }),
+      newApplications: await Application.countDocuments({
+        createdAt: { $gte: firstDayOfMonth, $lte: lastDayOfMonth }
+      }),
+      adClicks: await Advertisement.aggregate([
+        {
+          $match: {
+            updatedAt: { $gte: firstDayOfMonth, $lte: lastDayOfMonth }
+          }
+        },
+        { $group: { _id: null, total: { $sum: '$clicks' } } }
+      ])
+    };
 
     return {
       users: {
         total: totalUsers,
-        tutors: totalTutors,
         students: totalStudents,
+        tutors: totalTutors,
         verifiedTutors
       },
       cases: {
         total: totalCases,
-        pending: pendingCases,
-        active: activeCases,
-        recent: recentCases.map(c => ({
-          id: c._id,
-          title: c.title,
-          status: c.status,
-          createdBy: c.createdBy.name,
-          createdAt: c.createdAt
-        }))
+        verified: verifiedCases,
+        active: activeCases
       },
-      ads: {
+      applications: {
+        total: totalApplications,
+        approved: approvedApplications,
+        pending: pendingApplications
+      },
+      advertisements: {
         total: totalAds,
-        active: activeAds
+        active: activeAds,
+        totalClicks: totalClicks[0]?.total || 0
+      },
+      monthly: {
+        newUsers: monthlyStats.newUsers,
+        newCases: monthlyStats.newCases,
+        newApplications: monthlyStats.newApplications,
+        adClicks: monthlyStats.adClicks[0]?.total || 0
       }
     };
   } catch (error) {
-    console.error('Error getting dashboard stats:', error);
+    console.error('Error getting statistics:', error);
     throw error;
   }
-}
+};
+
+const getDashboard = async () => {
+  try {
+    // User statistics
+    const totalUsers = await User.countDocuments();
+    const totalStudents = await User.countDocuments({ role: 'student' });
+    const totalTutors = await User.countDocuments({ role: 'tutor' });
+
+    // Case statistics
+    const pendingCases = await Case.countDocuments({ status: 'pending' });
+
+    // Get latest cases
+    const latestCases = await Case.find({})
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate('student', 'name')
+      .select('_id title status createdAt');
+
+    return {
+      totalUsers,
+      totalStudents,
+      totalTutors,
+      pendingCases,
+      latestCases: latestCases.map(caseItem => ({
+        _id: caseItem._id,
+        title: caseItem.title,
+        studentName: caseItem.student.name,
+        status: caseItem.status,
+        createdAt: caseItem.createdAt
+      }))
+    };
+  } catch (error) {
+    console.error('Error getting dashboard statistics:', error);
+    throw error;
+  }
+};
 
 module.exports = {
-  getDashboardStats
+  getStats,
+  getDashboard
 }; 

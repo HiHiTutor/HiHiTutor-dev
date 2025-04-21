@@ -1,11 +1,12 @@
 const mongoose = require('mongoose');
 
 const advertisementSchema = new mongoose.Schema({
-  name: {
+  title: {
     type: String,
-    required: true
+    required: true,
+    trim: true
   },
-  package: {
+  imageUrl: {
     type: String,
     required: true
   },
@@ -13,10 +14,10 @@ const advertisementSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  status: {
+  position: {
     type: String,
-    enum: ['active', 'inactive'],
-    default: 'active'
+    enum: ['header', 'sidebar', 'footer'],
+    required: true
   },
   startDate: {
     type: Date,
@@ -26,29 +27,24 @@ const advertisementSchema = new mongoose.Schema({
     type: Date,
     required: true
   },
-  priority: {
+  active: {
+    type: Boolean,
+    default: true
+  },
+  clicks: {
     type: Number,
     default: 0
   },
-  createdBy: {
+  advertiser: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
   }
+}, {
+  timestamps: true
 });
 
-// 更新 updatedAt 時間戳
-advertisementSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
-});
+// Add index for active advertisements
+advertisementSchema.index({ active: 1, position: 1, startDate: 1, endDate: 1 });
 
 module.exports = mongoose.model('Advertisement', advertisementSchema); 
